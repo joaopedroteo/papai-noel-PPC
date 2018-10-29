@@ -5,7 +5,7 @@
 # source code for the V-ART framework. Create a symbolic
 # link to the real directory and you'll be OK.
 
-APPLICATION = main
+APPLICATION = main.app
 CXXFLAGS = -Wall -I. -std=c++11
 
 OBJECTS = main.o
