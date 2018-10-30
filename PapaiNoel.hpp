@@ -9,6 +9,8 @@ public:
     PapaiNoel();
     ~PapaiNoel();
     bool estaDormindo();
+    void acordar();
+    void dormir();
 };
 
 

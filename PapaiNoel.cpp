@@ -14,3 +14,10 @@ bool PapaiNoel::estaDormindo(){
     return this->dormindo;
 }
 
+void PapaiNoel::acordar() {
+    this->dormindo = false;
+}
+
+void PapaiNoel::dormir() {
+    this->dormindo = true;
+}

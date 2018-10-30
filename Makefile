@@ -6,7 +6,7 @@
 # link to the real directory and you'll be OK.
 
 APPLICATION = main.app
-CXXFLAGS = -Wall -I. -std=c++11
+CXXFLAGS = -Wall -I. -std=c++11 -fopenmp
 
 OBJECTS = main.o
 
@@ -14,9 +14,8 @@ OBJECTS = main.o
 %.o: %.cpp %.hpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ -c $<
 
-
 $(APPLICATION): $(OBJECTS) main.o
-	$(CXX) $^ -o $@
+	$(CXX) $(CXXFLAGS) $^  -o $@
 
 #gdb:
 #	CXXFLAGS = $(CXXFLAGS) -ggdb
