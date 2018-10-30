@@ -29,6 +29,7 @@ void Elfo::setNome(string nome){
 
 void Elfo::inverteValorInserido() {
     this->inserido = !this->inserido;
+
 }
 
 bool Elfo::estaInserido() {
