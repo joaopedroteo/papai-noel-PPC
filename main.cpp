@@ -46,10 +46,14 @@ Elfo** insereElfos(Elfo** elfos, bool* bufferElfosCheio) {
 	for(int i = 0; i < NUMERO_DE_ELFOS; i++) {
 		double tempo = (rand() % 10) * 0.27; // TEMPO FABRICANDO BRINQUEDOS
 		sleep(tempo);
-		// #pragma omp critical
-		// {
-		// 	cout << "tempo dormindo " << elfos[i]->getNome() << ": " << tempo << endl;
-		// }
+		if (elfos[i]->estaInserido()){
+			#pragma omp critical
+			{
+				cout << elfos[i]->getNome() << " indo trabalhar..." << endl;
+			}
+			sleep(3);
+			elfos[i]->inverteValorInserido();
+		}
 		while(!elfos[i]->estaInserido() and !bufferCheio) {
 			#pragma omp critical
 			{
@@ -167,9 +171,16 @@ int main() {
 					sleep(1);
 					cout << "Papai noel ta ocupado" << endl;
 				}
+			
+				
 				cout << "elfo pedindo ajuda" << endl;
 				#pragma omp critical
 				{
+					
+					for(int i = 0; i < TAMANHO_GRUPO_ELFOS; i++){
+						cout << bufferElfos[i]->getNome() << endl;
+					}
+					
 					papaiNoel.acordar();
 				}
 				// reune com o papai noel
@@ -181,22 +192,10 @@ int main() {
 				{
 					papaiNoel.dormir();
 					
-					for(int  i = 0; i < TAMANHO_GRUPO_ELFOS; i++) {
-						cout << bufferElfos[i]->getNome() << endl;
-						bufferElfos[i]->inverteValorInserido();
-					}
-					
 					delete[] bufferElfos;
 				}
 			}
 		}
-
 	}
-
-	// while(true) !!!
-	
-
-	// Rena rena("reninha");
-	// cout << rena.getNome() << endl;
 	return 0;
 }
