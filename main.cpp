@@ -3,8 +3,6 @@
 #include <unistd.h>
 
 #include "PapaiNoel.cpp"
-// #include "Ajudante.cpp"
-// #include "Elfo.cpp"
 #include "Ajudante.cpp"
 
 
@@ -21,10 +19,6 @@ Ajudante** insereRenas(Ajudante** renas, bool* bufferRenasCheio) {
 	for(int i = 0; i < NUMERO_DE_RENAS; i++) {
 		double tempo = (rand() % 10) * 0.65;
 		sleep(tempo);
-		// #pragma omp critical
-		// {
-		// 	cout << "tempo dormindo " << renas[i]->getNome() << ": " << tempo << endl;
-		// }
 		while(!renas[i]->estaInserido()) {
 			#pragma omp critical
 			{
