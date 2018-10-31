@@ -12,6 +12,12 @@ using namespace std;
 #define NUMERO_DE_ELFOS 10
 #define TAMANHO_GRUPO_ELFOS 3
 
+void insereAjudante(Ajudante** bufferAjudante, Ajudante* ajudante, int* posicaoInserir){
+	bufferAjudante[*posicaoInserir] = ajudante;
+	(*posicaoInserir)++;
+	ajudante->inverteValorInserido();
+}
+
 Ajudante** insereRenas(Ajudante** renas, bool* bufferRenasCheio) {
 	Ajudante** bufferRenas = new Ajudante*[NUMERO_DE_RENAS];
 	int quantidade = 0;
@@ -22,9 +28,10 @@ Ajudante** insereRenas(Ajudante** renas, bool* bufferRenasCheio) {
 		while(!renas[i]->estaInserido()) {
 			#pragma omp critical
 			{
-				bufferRenas[quantidade] = renas[i];
-				quantidade++;
-				renas[i]->inverteValorInserido();
+				insereAjudante(bufferRenas, renas[i], &quantidade);
+				// bufferRenas[quantidade] = renas[i];
+				// quantidade++;
+				// renas[i]->inverteValorInserido();
 			}
 		}
 		sleep(0.5);
@@ -54,9 +61,10 @@ Ajudante** insereElfos(Ajudante** elfos, bool* bufferElfosCheio) {
 			{
 				bufferCheio = !(quantidade < TAMANHO_GRUPO_ELFOS);
 				if(!bufferCheio) {
-					bufferElfos[quantidade] = elfos[i];
-					quantidade++;
-					elfos[i]->inverteValorInserido();
+					insereAjudante(bufferElfos, elfos[i], &quantidade);
+					// bufferElfos[quantidade] = elfos[i];
+					// quantidade++;
+					// elfos[i]->inverteValorInserido();
 				}
 			}
 			sleep(0.5);
