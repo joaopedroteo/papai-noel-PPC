@@ -16,7 +16,7 @@ public:
     void setNome(string nome);
     void inverteValorInserido();
     bool estaInserido();
-}
+};
 
 
 #endif

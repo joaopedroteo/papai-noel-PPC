@@ -3,8 +3,9 @@
 #include <unistd.h>
 
 #include "PapaiNoel.cpp"
-#include "Rena.cpp"
-#include "Elfo.cpp"
+// #include "Ajudante.cpp"
+// #include "Elfo.cpp"
+#include "Ajudante.cpp"
 
 
 using namespace std;
@@ -13,8 +14,8 @@ using namespace std;
 #define NUMERO_DE_ELFOS 10
 #define TAMANHO_GRUPO_ELFOS 3
 
-Rena** insereRenas(Rena** renas, bool* bufferRenasCheio) {
-	Rena** bufferRenas = new Rena*[NUMERO_DE_RENAS];
+Ajudante** insereRenas(Ajudante** renas, bool* bufferRenasCheio) {
+	Ajudante** bufferRenas = new Ajudante*[NUMERO_DE_RENAS];
 	int quantidade = 0;
 	#pragma omp parallel for shared(quantidade, bufferRenas)
 	for(int i = 0; i < NUMERO_DE_RENAS; i++) {
@@ -24,12 +25,12 @@ Rena** insereRenas(Rena** renas, bool* bufferRenasCheio) {
 		// {
 		// 	cout << "tempo dormindo " << renas[i]->getNome() << ": " << tempo << endl;
 		// }
-		while(!renas[i]->estaInserida()) {
+		while(!renas[i]->estaInserido()) {
 			#pragma omp critical
 			{
 				bufferRenas[quantidade] = renas[i];
 				quantidade++;
-				renas[i]->inverteValorInserida();
+				renas[i]->inverteValorInserido();
 			}
 		}
 		sleep(0.5);
@@ -38,8 +39,8 @@ Rena** insereRenas(Rena** renas, bool* bufferRenasCheio) {
 	return bufferRenas;
 }
 
-Elfo** insereElfos(Elfo** elfos, bool* bufferElfosCheio) {
-	Elfo** bufferElfos = new Elfo*[TAMANHO_GRUPO_ELFOS];
+Ajudante** insereElfos(Ajudante** elfos, bool* bufferElfosCheio) {
+	Ajudante** bufferElfos = new Ajudante*[TAMANHO_GRUPO_ELFOS];
 	int quantidade = 0;
 	bool bufferCheio = false;
 	#pragma omp parallel for shared(quantidade, bufferElfos)
@@ -75,8 +76,8 @@ int main() {
 	srand(time(0));
 	cout << "INICIO" << endl;
 	PapaiNoel papaiNoel;
-	Rena** renas = new Rena*[NUMERO_DE_RENAS];
-	Elfo** elfos = new Elfo*[NUMERO_DE_ELFOS];
+	Ajudante** renas = new Ajudante*[NUMERO_DE_RENAS];
+	Ajudante** elfos = new Ajudante*[NUMERO_DE_ELFOS];
 	bool bufferRenasCheio = false;
 	bool bufferElfosCheio = false;
 	omp_set_nested(2);
@@ -86,14 +87,14 @@ int main() {
 		{
 			#pragma omp parallel for
 			for(int i = 0; i < NUMERO_DE_RENAS; i++) {
-				renas[i] = new Rena("Rena" + to_string(i));
+				renas[i] = new Ajudante("Rena" + to_string(i));
 			}
 		}
 		#pragma omp section
 		{
 			#pragma omp parallel for
 			for(int i = 0; i < NUMERO_DE_ELFOS; i++) {
-				elfos[i] = new Elfo("Elfo" + to_string(i));
+				elfos[i] = new Ajudante("Elfo" + to_string(i));
 			}
 		}
 	}
@@ -129,10 +130,9 @@ int main() {
 		// section rena
 		#pragma omp section
 		{
-			int iteracao = 0;
 
 			while(true) {
-				Rena** bufferRenas = insereRenas(renas, &bufferRenasCheio);
+				Ajudante** bufferRenas = insereRenas(renas, &bufferRenasCheio);
 
 				while(!papaiNoel.estaDormindo()){
 					cout << "Papai noel ta ocupado" << endl;
@@ -151,7 +151,7 @@ int main() {
 					
 					for(int i = 0; i < NUMERO_DE_RENAS; i++) {
 						cout << bufferRenas[i]->getNome() << endl;
-						bufferRenas[i]->inverteValorInserida();
+						bufferRenas[i]->inverteValorInserido();
 					}
 					delete[] bufferRenas;
 					
@@ -163,9 +163,8 @@ int main() {
 		// section elfo
 		#pragma omp section
 		{
-			int iteracao = 0;
 			while(true) {
-				Elfo** bufferElfos = insereElfos(elfos, &bufferElfosCheio);
+				Ajudante** bufferElfos = insereElfos(elfos, &bufferElfosCheio);
 				
 				while(!papaiNoel.estaDormindo()){
 					sleep(1);
