@@ -3,8 +3,7 @@
 #include <unistd.h>
 
 #include "PapaiNoel.cpp"
-#include "Rena.cpp"
-#include "Elfo.cpp"
+#include "Ajudante.cpp"
 
 
 using namespace std;
@@ -13,72 +12,90 @@ using namespace std;
 #define NUMERO_DE_ELFOS 10
 #define TAMANHO_GRUPO_ELFOS 3
 
-Rena** insereRenas(Rena** renas, bool* bufferRenasCheio) {
-	Rena** bufferRenas = new Rena*[NUMERO_DE_RENAS];
+void insereAjudante(Ajudante** bufferAjudante, Ajudante* ajudante, int* posicaoInserir){
+	bufferAjudante[*posicaoInserir] = ajudante;
+	(*posicaoInserir)++;
+	ajudante->inverteValorInserido();
+	cout << ajudante->getNome() << " entrou no buffer." << endl;
+}
+
+Ajudante** insereRenas(Ajudante** renas, bool* bufferRenasCheio) {
+	// Cria o buffer de renas 
+	Ajudante** bufferRenas = new Ajudante*[NUMERO_DE_RENAS];
 	int quantidade = 0;
 	#pragma omp parallel for shared(quantidade, bufferRenas)
 	for(int i = 0; i < NUMERO_DE_RENAS; i++) {
-		double tempo = (rand() % 10) * 0.65;
+		//Tempo que a Rena está dormindo
+		double tempo = (rand() % 10) * 0.1;
 		sleep(tempo);
-		// #pragma omp critical
-		// {
-		// 	cout << "tempo dormindo " << renas[i]->getNome() << ": " << tempo << endl;
-		// }
-		while(!renas[i]->estaInserida()) {
+		//Tentamos inserir a rena enquanto ela não estiver no buffer
+		while(!renas[i]->estaInserido()) {
 			#pragma omp critical
 			{
-				bufferRenas[quantidade] = renas[i];
-				quantidade++;
-				renas[i]->inverteValorInserida();
+				insereAjudante(bufferRenas, renas[i], &quantidade);
 			}
 		}
-		sleep(0.5);
 	}
 	*bufferRenasCheio = true;
 	return bufferRenas;
 }
 
-Elfo** insereElfos(Elfo** elfos, bool* bufferElfosCheio) {
-	Elfo** bufferElfos = new Elfo*[TAMANHO_GRUPO_ELFOS];
+Ajudante** insereElfos(Ajudante** elfos, bool* bufferElfosCheio) {
+	// Cria o buffer de elfos
+	Ajudante** bufferElfos = new Ajudante*[TAMANHO_GRUPO_ELFOS];
 	int quantidade = 0;
+	//Variável que indica se as três posições do buffer já estão ocupadas
 	bool bufferCheio = false;
 	#pragma omp parallel for shared(quantidade, bufferElfos)
 	for(int i = 0; i < NUMERO_DE_ELFOS; i++) {
-		double tempo = (rand() % 10) * 0.27; // TEMPO FABRICANDO BRINQUEDOS
+		// Tempo que os elfos estão fabricando brinquedos
+		double tempo = (rand() % 10) * 0.05;
 		sleep(tempo);
+		// Se o elfo está inserido, isso significa que recentemente ele recebeu ajuda do papai noel....
+		// Logo, ele deve voltar a fabricar brinquedos em seguida.
 		if (elfos[i]->estaInserido()){
-			#pragma omp critical
-			{
-				cout << elfos[i]->getNome() << " indo trabalhar..." << endl;
-			}
-			sleep(3);
+			sleep(rand() % 2);
 			elfos[i]->inverteValorInserido();
 		}
+		//Tentamos inserir o elfo enquanto ele não estiver no buffer e o buffer não estiver cheio
 		while(!elfos[i]->estaInserido() and !bufferCheio) {
 			#pragma omp critical
 			{
+				//Verifica se a quantidade atual de elfos no buffer é menor que o do tamanho do grupo de elfos.
 				bufferCheio = !(quantidade < TAMANHO_GRUPO_ELFOS);
 				if(!bufferCheio) {
-					bufferElfos[quantidade] = elfos[i];
-					quantidade++;
-					elfos[i]->inverteValorInserido();
+					insereAjudante(bufferElfos, elfos[i], &quantidade);
 				}
 			}
-			sleep(0.5);
 		}
 	}
 	*bufferElfosCheio = true;
 	return bufferElfos;
 }
 
+//Imprime na tela os ajudantes que irão pedir ajuda ao papai noel
+void ajudantesPedindoAjuda(Ajudante** ajudantes, int tamanho){
+	cout << ajudantes[tamanho-1]->getNome() << " está pedindo ajuda para os ajudantes: ";
+	for(int i = tamanho-1; i >= 0; i--){
+		cout << ajudantes[i]->getNome() << " ";
+	}
+	cout << endl;
+}
+
 int main() {
 	srand(time(0));
 	cout << "INICIO" << endl;
+
+	//Inicialização do papai noel, renas e elfos.
 	PapaiNoel papaiNoel;
-	Rena** renas = new Rena*[NUMERO_DE_RENAS];
-	Elfo** elfos = new Elfo*[NUMERO_DE_ELFOS];
+	Ajudante** renas = new Ajudante*[NUMERO_DE_RENAS];
+	Ajudante** elfos = new Ajudante*[NUMERO_DE_ELFOS];
+
+	//Variáveis que indicam o estado do buffer
 	bool bufferRenasCheio = false;
 	bool bufferElfosCheio = false;
+
+	//Cria as renas e os elfos do problema.
 	omp_set_nested(2);
 	#pragma omp parallel sections
 	{
@@ -86,21 +103,23 @@ int main() {
 		{
 			#pragma omp parallel for
 			for(int i = 0; i < NUMERO_DE_RENAS; i++) {
-				renas[i] = new Rena("Rena" + to_string(i));
+				renas[i] = new Ajudante("Rena" + to_string(i));
 			}
 		}
 		#pragma omp section
 		{
 			#pragma omp parallel for
 			for(int i = 0; i < NUMERO_DE_ELFOS; i++) {
-				elfos[i] = new Elfo("Elfo" + to_string(i));
+				elfos[i] = new Ajudante("Elfo" + to_string(i));
 			}
 		}
 	}
+	//Fim da criação de renas e elfos
 
-	#pragma omp parallel sections//E DORMIR 1 ANO
+	//Divide o papai noel, renas e elfos em seções paralelas
+	#pragma omp parallel sections
 	{
-		// section papai noel
+		// Seção Papai Noel
 		#pragma omp section
 		{
 			while(true) {
@@ -108,17 +127,16 @@ int main() {
 					if(bufferRenasCheio) {
 						#pragma omp critical
 						{
-							cout << "ajudando renas" << endl;
-							sleep(0.8);
-							
+							cout << "Papai noel está ajudando as renas..." << endl;
+							sleep(0.5 + (rand()%10) * 0.5);
 							bufferRenasCheio = false;
 							papaiNoel.dormir();
 						}
 					} else {
 						#pragma omp critical
 						{
-							cout << "ajudando elfos" << endl;
-							sleep(0.3);
+							cout << "Papai noel está ajudando os elfos..." << endl;
+							sleep((rand() % 10) * 0.5);
 							bufferElfosCheio = false;
 							papaiNoel.dormir();
 						}
@@ -126,61 +144,55 @@ int main() {
 				}
 			}
 		}
-		// section rena
+
+		// Seção Renas
 		#pragma omp section
 		{
-			int iteracao = 0;
-
 			while(true) {
-				Rena** bufferRenas = insereRenas(renas, &bufferRenasCheio);
+				Ajudante** bufferRenas = insereRenas(renas, &bufferRenasCheio);
 
-				while(!papaiNoel.estaDormindo()){
-					cout << "Papai noel ta ocupado" << endl;
+				if (!papaiNoel.estaDormindo()){
+					cout << "Papai Noel esta ocupado com os elfos..." << endl;
+					while(!papaiNoel.estaDormindo()){
+					}
 				}
-				cout << "rena pedindo ajuda" << endl;
+
+				ajudantesPedindoAjuda(bufferRenas, NUMERO_DE_RENAS);
 				#pragma omp critical
 				{
 					papaiNoel.acordar();
 				}
-				//RENAS VAO ENTREGAR PRESENTES
-				//E DORMIR 1 ANO
-				//PAPAI NOEL VOLTA A DORMIR
 				#pragma omp critical
 				{
 					papaiNoel.dormir();
 					
 					for(int i = 0; i < NUMERO_DE_RENAS; i++) {
-						cout << bufferRenas[i]->getNome() << endl;
-						bufferRenas[i]->inverteValorInserida();
+						bufferRenas[i]->inverteValorInserido();
 					}
 					delete[] bufferRenas;
 					
 				}
-				sleep(10);
+				sleep(5 + rand() % 10);
 			}
 		}
 
-		// section elfo
+		// Seção Elfos
 		#pragma omp section
 		{
-			int iteracao = 0;
+			//Durante a execução do programa....
 			while(true) {
-				Elfo** bufferElfos = insereElfos(elfos, &bufferElfosCheio);
+				Ajudante** bufferElfos = insereElfos(elfos, &bufferElfosCheio);
 				
-				while(!papaiNoel.estaDormindo()){
-					sleep(1);
-					cout << "Papai noel ta ocupado" << endl;
+				//Se o papai noel já estiver acordado (e.g auxiliando as renas) espera até que ele acorde
+				if (!papaiNoel.estaDormindo()){
+					cout << "Papai Noel esta ocupado com as renas..." << endl;
+					while(!papaiNoel.estaDormindo()){
+					}
 				}
-			
+				ajudantesPedindoAjuda(bufferElfos, TAMANHO_GRUPO_ELFOS);
 				
-				cout << "elfo pedindo ajuda" << endl;
 				#pragma omp critical
 				{
-					
-					for(int i = 0; i < TAMANHO_GRUPO_ELFOS; i++){
-						cout << bufferElfos[i]->getNome() << endl;
-					}
-					
 					papaiNoel.acordar();
 				}
 				// reune com o papai noel
